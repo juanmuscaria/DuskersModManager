@@ -71,21 +71,6 @@ upx {
 //    }
 //}
 
-tasks.register("compressNativeExec", UpxTask) {
-    OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
-    if (os.isWindows()) {
-        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-windows/DuskersML"))
-    } else if (os.isLinux()) {
-        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-linux/DuskersML"))
-    } else {
-       throw new UnsupportedOperationException("Unsuported OS")
-    }
-    doFirst {
-        var file = outputExecutable.get().asFile
-        if (file.exists()) file.delete()
-    }
-}
-
 tasks.register("compileModloader", Exec) {
     setWorkingDir("$rootProject.projectDir/modloader")
     OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
@@ -142,4 +127,21 @@ processResources {
     from("$buildDir/repack")
 }
 
-//nativeLink.finalizedBy("compressNativeExec")
+tasks.register("nativeDist", UpxTask) {
+    dependsOn("nativeBuild")
+    OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
+    if (os.isWindows()) {
+        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-windows/DuskersModManager.exe"))
+        outputExecutable.set(file("${buildDir}/dist/DuskersModManager.exe"))
+    } else if (os.isLinux()) {
+        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-linux/DuskersModManager"))
+        outputExecutable.set(file("${buildDir}/dist/DuskersModManager"))
+    } else {
+        throw new UnsupportedOperationException("Unsuported OS")
+    }
+    doFirst {
+        var file = outputExecutable.get().asFile
+        if (file.exists()) file.delete()
+    }
+}
+
