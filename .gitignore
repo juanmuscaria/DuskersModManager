@@ -1,0 +1,18 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+*/.idea/
+/modloader/Doorstop/bin/
+
+
+# Csharp ignored stuff
+*.suo
+*.user
+_ReSharper.*
+bin
+obj
+packages
+/.idea/

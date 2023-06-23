@@ -1,0 +1,145 @@
+import org.gradle.internal.jvm.Jvm
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.jetbrains.gradle.plugins.upx.UpxTask
+
+plugins {
+    id("application")
+    id("org.openjfx.javafxplugin") version "0.0.13"
+    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.18"
+    id("org.jetbrains.gradle.upx") version "1.6.0-RC.5"
+    id "de.undercouch.download" version "5.4.0"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.google.guava:guava:31.1-jre")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("commons-io:commons-io:2.13.0")
+}
+
+javafx {
+    version = "17"
+    modules("javafx.controls", "javafx.fxml", "javafx.web")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+gluonfx {
+    //graalvmHome = System.getProperty("java.home")
+    //println(org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath)
+    /////////////////////////////////// terrible horror starts
+    // TODO: gluon is not smart enough to use the java toolchain.... We must manually set both graalvmHome *and* $JAVA_HOME
+    graalvmHome = Jvm.current().javaHome.absolutePath
+    var pe = Class.forName("java.lang.ProcessEnvironment")
+    var getenv = pe.getDeclaredMethod("getenv")
+    getenv.setAccessible(true)
+    var unmodifiableEnvironment = getenv.invoke(null)
+    var map = Class.forName("java.util.Collections\$UnmodifiableMap")
+    var m = map.getDeclaredField("m")
+    m.setAccessible(true)
+    ((Map)m.get(unmodifiableEnvironment)).put("GRAALVM_HOME", graalvmHome)
+    /////////////////////////////////// terrible horror ends
+
+    enableSwRendering = true
+
+}
+
+mainClassName = "com.juanmuscaria.duskers.Launcher"
+
+application {
+    mainClass.set(mainClassName)
+    applicationDefaultJvmArgs = ["-agentlib:native-image-agent=access-filter-file=src/main/resources/META-INF/native-image/filter-file.json,config-merge-dir=src/main/resources/META-INF/native-image"]
+}
+
+upx {
+
+}
+
+//tasks.withType<NativeLinkTask> nativeBuild@{
+//    val compress =
+//    tasks.register<Exec>("runCompressed${name.capitalize()}") {
+//        group = "application"
+//        dependsOn(compress)
+//        executable = compress.get().outputExecutable.get().asFile.absolutePath
+//    }
+//}
+
+tasks.register("compressNativeExec", UpxTask) {
+    OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
+    if (os.isWindows()) {
+        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-windows/DuskersML"))
+    } else if (os.isLinux()) {
+        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-linux/DuskersML"))
+    } else {
+       throw new UnsupportedOperationException("Unsuported OS")
+    }
+    doFirst {
+        var file = outputExecutable.get().asFile
+        if (file.exists()) file.delete()
+    }
+}
+
+tasks.register("compileModloader", Exec) {
+    setWorkingDir("$rootProject.projectDir/modloader")
+    OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
+    if (os.isLinux()) {
+        setCommandLine('/usr/bin/msbuild')
+    } else {
+        throw new UnsupportedOperationException("Unsuported OS")
+    }
+}
+
+tasks.register("copyModloader", Copy) {
+    dependsOn('compileModloader')
+    from("$rootProject.projectDir/modloader/Doorstop/bin/Debug/net35/Doorstop.dll")
+    into("$buildDir/modloader")
+    rename('Doorstop.dll','modloader.dll')
+}
+
+tasks.register('downloadBepInExUnix', Download) {
+    src "https://github.com/BepInEx/BepInEx/releases/download/v${project.property('BepInExVersion')}/BepInEx_unix_${project.property('BepInExVersion')}.0.zip"
+    dest "$buildDir/BepInExUnix.zip"
+    overwrite false
+}
+
+tasks.register('downloadBepInExWin', Download) {
+    src "https://github.com/BepInEx/BepInEx/releases/download/v${project.property('BepInExVersion')}/BepInEx_x64_${project.property('BepInExVersion')}.0.zip"
+    dest "$buildDir/BepInExWin.zip"
+    overwrite false
+}
+
+tasks.register("repackBepInExWin", Zip) {
+    dependsOn("downloadBepInExWin")
+    from(zipTree("$buildDir/BepInExWin.zip")) {
+        exclude("changelog.txt", "doorstop_config.ini")
+    }
+    from("$projectDir/src/main/repack")
+    archiveFileName = "$buildDir/repack/win.zip"
+}
+
+tasks.register("repackBepInExUnix", Zip) {
+    dependsOn("downloadBepInExUnix")
+    from(zipTree("$buildDir/BepInExUnix.zip")) {
+        exclude("changelog.txt", "run_bepinex.sh")
+    }
+    from("$projectDir/src/main/repack")
+    archiveFileName = "$buildDir/repack/unix.zip"
+}
+
+tasks.register("repackBepInEx") {
+    dependsOn("repackBepInExUnix", "repackBepInExWin")
+}
+
+processResources {
+    dependsOn("repackBepInEx")
+    from("$buildDir/repack")
+}
+
+//nativeLink.finalizedBy("compressNativeExec")

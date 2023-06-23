@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doorstop", "Doorstop\Doorstop.csproj", "{ED48B984-7FF8-4BED-9C31-9110F3FB3A4B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED48B984-7FF8-4BED-9C31-9110F3FB3A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED48B984-7FF8-4BED-9C31-9110F3FB3A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED48B984-7FF8-4BED-9C31-9110F3FB3A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED48B984-7FF8-4BED-9C31-9110F3FB3A4B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

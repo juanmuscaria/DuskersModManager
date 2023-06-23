@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane fx:id="root" prefHeight="95.0" prefWidth="444.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.juanmuscaria.duskers.ui.InstallerController">
+   <children>
+      <Label layoutX="14.0" layoutY="14.0" text="Install location:">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <ComboBox fx:id="folderList" editable="true" layoutX="135.0" layoutY="11.0" prefHeight="24.0" prefWidth="257.0" promptText="Duskers Folder" />
+      <Button layoutX="399.0" layoutY="11.0" mnemonicParsing="false" onAction="#selectFolder" text="...">
+         <tooltip>
+            <Tooltip text="Select where Duskers is installed" />
+         </tooltip>
+      </Button>
+      <Button fx:id="install" layoutX="159.0" layoutY="57.0" mnemonicParsing="false" onAction="#install" text="Install or Update" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="159.0" AnchorPane.rightAnchor="159.0" AnchorPane.topAnchor="57.0" />
+      <Label fx:id="installInfo" alignment="CENTER" contentDisplay="CENTER" layoutY="40.0" prefHeight="16.0" prefWidth="444.0" />
+   </children>
+</AnchorPane>
