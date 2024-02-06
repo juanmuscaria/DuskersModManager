@@ -2,7 +2,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id 'application'
-    id 'org.jetbrains.gradle.upx' version '1.6.0-RC.5'
+    //id 'org.jetbrains.gradle.upx' version '1.6.0-RC.5'
     id 'de.undercouch.download' version '5.4.0'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'io.micronaut.application' version '4.2.1'
