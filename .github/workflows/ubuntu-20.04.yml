@@ -16,10 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Gluon's GraalVM
-        uses: gluonhq/setup-graalvm@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download Liberica NIK
+        run: |
+          download_url="https://download.bell-sw.com/vm/23.1.2/bellsoft-liberica-vm-full-openjdk21.0.2+14-23.1.2+1-linux-amd64.tar.gz"
+          wget -O $RUNNER_TEMP/java_package.tar.gz $download_url
+
+      - name: Set up Liberica NIK
+        uses: actions/setup-java@v3
+        with:
+          distribution: jdkfile
+          java-version: 21
+          jdkFile: ${{ runner.temp }}/java_package.tar.gz
+          architecture: x64
 
       - name: Install libraries
         run: |
@@ -29,10 +37,10 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
-          arguments: nativeDist
+          arguments: nativeCompile
 
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
           name: Distribution
-          path: build/dist
+          path: build/native/nativeCompile
