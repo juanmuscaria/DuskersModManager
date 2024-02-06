@@ -1,8 +1,9 @@
-package com.juanmuscaria.duskers.ui;
+package com.juanmuscaria.dmm.ui;
 
-import com.juanmuscaria.duskers.Constants;
-import com.juanmuscaria.duskers.DuskersHelper;
-import com.juanmuscaria.duskers.ReportedException;
+import com.juanmuscaria.dmm.Constants;
+import com.juanmuscaria.dmm.DuskersHelper;
+import com.juanmuscaria.dmm.ReportedException;
+import io.micronaut.core.annotation.ReflectiveAccess;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
@@ -17,24 +18,28 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.*;
 
+@ReflectiveAccess
 public class DuskersLauncherController {
     private static final Logger log = Logger.getLogger(Constants.LOGGER_NAME);
     private static final int MAX_LOG_ENTRIES = 1_000_000;
 
     private final BlockingDeque<String> logMessages = new LinkedBlockingDeque<>(MAX_LOG_ENTRIES);
-
     private Process duskers;
 
     @FXML
+    @ReflectiveAccess
     private TextArea logs;
 
     @FXML
+    @ReflectiveAccess
     private Button launch;
 
     @FXML
+    @ReflectiveAccess
     private Button launchUnmodded;
 
     @FXML
+    @ReflectiveAccess
     void initialize() {
         Timeline logTransfer = new Timeline(
                 new KeyFrame(
@@ -56,6 +61,7 @@ public class DuskersLauncherController {
     }
 
     @FXML
+    @ReflectiveAccess
     void launch(ActionEvent event) {
         event.consume();
         logs.clear();
@@ -64,6 +70,7 @@ public class DuskersLauncherController {
     }
 
     @FXML
+    @ReflectiveAccess
     void launchUnmodded(ActionEvent event) {
         event.consume();
         logs.clear();

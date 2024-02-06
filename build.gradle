@@ -1,75 +1,54 @@
-import org.gradle.internal.jvm.Jvm
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.jetbrains.gradle.plugins.upx.UpxTask
 
 plugins {
-    id("application")
-    id("org.openjfx.javafxplugin") version "0.0.13"
-    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.18"
-    id("org.jetbrains.gradle.upx") version "1.6.0-RC.5"
-    id "de.undercouch.download" version "5.4.0"
+    id 'application'
+    id 'org.jetbrains.gradle.upx' version '1.6.0-RC.5'
+    id 'de.undercouch.download' version '5.4.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'io.micronaut.application' version '4.2.1'
 }
+
+version = "0.1"
+group = "com.juanmuscaria"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("com.google.guava:guava:31.1-jre")
+    annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("info.picocli:picocli-codegen")
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    implementation("info.picocli:picocli")
+    implementation("io.micronaut.picocli:micronaut-picocli")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    implementation("jakarta.annotation:jakarta.annotation-api")
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.13.0")
+    implementation("org.fusesource.jansi:jansi:2.4.1")
+    implementation("io.github.mkpaz:atlantafx-base:2.0.1")
+    compileOnly("org.projectlombok:lombok")
+    runtimeOnly("ch.qos.logback:logback-classic")
 }
 
-javafx {
-    version = "17"
-    modules("javafx.controls", "javafx.fxml", "javafx.web")
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+graalvmNative {
+    toolchainDetection = true
+    binaries.configureEach {
+        resources.autodetect()
     }
 }
 
-gluonfx {
-    //graalvmHome = System.getProperty("java.home")
-    //println(org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath)
-    /////////////////////////////////// terrible horror starts
-    // TODO: gluon is not smart enough to use the java toolchain.... We must manually set both graalvmHome *and* $JAVA_HOME
-    graalvmHome = Jvm.current().javaHome.absolutePath
-    var pe = Class.forName("java.lang.ProcessEnvironment")
-    var getenv = pe.getDeclaredMethod("getenv")
-    getenv.setAccessible(true)
-    var unmodifiableEnvironment = getenv.invoke(null)
-    var map = Class.forName("java.util.Collections\$UnmodifiableMap")
-    var m = map.getDeclaredField("m")
-    m.setAccessible(true)
-    ((Map)m.get(unmodifiableEnvironment)).put("GRAALVM_HOME", graalvmHome)
-    /////////////////////////////////// terrible horror ends
-
-    enableSwRendering = true
-
-}
-
-mainClassName = "com.juanmuscaria.duskers.Launcher"
-
 application {
-    mainClass.set(mainClassName)
-    applicationDefaultJvmArgs = ["-agentlib:native-image-agent=access-filter-file=src/main/resources/META-INF/native-image/filter-file.json,config-merge-dir=src/main/resources/META-INF/native-image"]
+    mainClass.set("com.juanmuscaria.dmm.ModManagerCommand")
 }
 
-upx {
-
+micronaut {
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("com.juanmuscaria.*")
+    }
 }
-
-//tasks.withType<NativeLinkTask> nativeBuild@{
-//    val compress =
-//    tasks.register<Exec>("runCompressed${name.capitalize()}") {
-//        group = "application"
-//        dependsOn(compress)
-//        executable = compress.get().outputExecutable.get().asFile.absolutePath
-//    }
-//}
 
 tasks.register("compileModloader", Exec) {
     setWorkingDir("$rootProject.projectDir/modloader")
@@ -127,21 +106,8 @@ processResources {
     from("$buildDir/repack")
 }
 
-tasks.register("nativeDist", UpxTask) {
-    dependsOn("nativeBuild")
-    OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
-    if (os.isWindows()) {
-        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-windows/DuskersModManager.exe"))
-        outputExecutable.set(file("${buildDir}/dist/DuskersModManager.exe"))
-    } else if (os.isLinux()) {
-        inputExecutable.set(file("${buildDir}/gluonfx/x86_64-linux/DuskersModManager"))
-        outputExecutable.set(file("${buildDir}/dist/DuskersModManager"))
-    } else {
-        throw new UnsupportedOperationException("Unsuported OS")
-    }
-    doFirst {
-        var file = outputExecutable.get().asFile
-        if (file.exists()) file.delete()
-    }
+run {
+    //jvmArgs += "-agentlib:native-image-agent=config-merge-dir=src/main/resources/META-INF/native-image"
+    jvmArgs += '-Djansi.mode=force'
+    jvmArgs += '-Dpicocli.ansi=true'
 }
-

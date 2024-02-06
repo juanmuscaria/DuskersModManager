@@ -1,4 +1,4 @@
-package com.juanmuscaria.duskers;
+package com.juanmuscaria.dmm;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

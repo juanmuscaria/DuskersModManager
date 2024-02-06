@@ -1,41 +1,8 @@
 {
   "resources":{
-  "includes":[
-    {
-      "pattern":"\\Qunix.zip\\E"
-    }, 
-    {
-      "pattern":"\\Qwin.zip\\E"
-    }, 
-    {
-      "pattern":"\\Qduskers_launcher.fxml\\E"
-    }, 
-    {
-      "pattern":"\\Qinstaller.fxml\\E"
-    }
-  ]},
-  "bundles":[
-    {
-      "name":"com.sun.javafx.tk.quantum.QuantumMessagesBundle",
-      "locales":[
-        "", 
-        "und"
-      ]
-    }, 
-    {
-      "name":"com.sun.webkit.LocalizedStrings",
-      "locales":[""]
-    }, 
-    {
-      "name":"com.sun.webkit.graphics.Images",
-      "locales":[""]
-    }, 
-    {
-      "name":"com/sun/javafx/scene/control/skin/resources/controls",
-      "locales":[
-        "", 
-        "und"
-      ]
-    }
-  ]
+    "includes":[
+      {
+        "pattern":"\\Qatlantafx/base/theme/cupertino-light.css\\E"
+      }
+    ]}
 }

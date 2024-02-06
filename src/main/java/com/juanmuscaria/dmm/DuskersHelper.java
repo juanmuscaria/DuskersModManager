@@ -1,4 +1,4 @@
-package com.juanmuscaria.duskers;
+package com.juanmuscaria.dmm;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -18,6 +18,7 @@ import java.util.zip.ZipInputStream;
 public class DuskersHelper {
     private static final Logger log = Logger.getLogger(Constants.LOGGER_NAME);
     private static final String LINUX_STEAM_PATH = ".local/share/Steam/steamapps/common/Duskers";
+    private static final String LINUX_FLATPAK = ".var/app/com.valvesoftware.Steam/" + LINUX_STEAM_PATH;
     private static final String WINDOWS_STEAM_PATH = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Duskers";
 
     public static List<Path> getPossibleDuskersFolders() {
@@ -33,6 +34,10 @@ public class DuskersHelper {
             if (Files.isDirectory(steamInstall)) {
                 paths.add(steamInstall);
             }
+            var flatpak = userPath.resolve(LINUX_FLATPAK);
+            if (Files.isDirectory(flatpak)) {
+                paths.add(flatpak);
+            }
         }
         return paths;
     }
@@ -46,7 +51,7 @@ public class DuskersHelper {
         //TODO: So macos .app is a special folder thing, it will require some special handling when making the modloader
         // will code verification prevents us from modding it?
 
-        throw new UnsupportedOperationException("Unsuported System");
+        throw new UnsupportedOperationException("Unsupported System");
     }
 
     public static Path getDataFolderName(Path basePath) {
@@ -66,6 +71,10 @@ public class DuskersHelper {
 
     public static Path getNewDuskersBinary(Path basePath) {
         return basePath.resolve("o_" + getDuskersBinary(basePath).getFileName());
+    }
+
+    public static boolean isInstalled(Path basePath) {
+        return Files.exists(DuskersHelper.getNewDuskersBinary(basePath));
     }
 
     public static void uninstallModManager(Path basePath) throws IOException {
@@ -95,7 +104,7 @@ public class DuskersHelper {
         var newDataFolder = DuskersHelper.getNewDataFolder(basePath);
 
         Files.move(duskersBinary, newDuskersBinary);
-        Files.copy(Launcher.getSelfPath(), duskersBinary);
+        Files.copy(ModManagerApplication.getSelfPath(), duskersBinary);
         Files.createSymbolicLink(newDataFolder, dataFolder);
 
         unpackLoader(basePath);

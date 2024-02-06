@@ -1,4 +1,4 @@
-package com.juanmuscaria.duskers;
+package com.juanmuscaria.dmm;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
@@ -13,7 +13,7 @@ public class DialogHelper {
         var sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
         var alert = new Alert(Alert.AlertType.ERROR);
-        alert.setHeaderText("An unrecoverable error occured!");
+        alert.setHeaderText("An unrecoverable error occurred!");
         alert.setContentText("The application will now exit.");
         var text = new TextArea(sw.toString());
         text.setMaxHeight(Long.MAX_VALUE);

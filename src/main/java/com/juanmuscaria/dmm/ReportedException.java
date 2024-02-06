@@ -1,4 +1,4 @@
-package com.juanmuscaria.duskers;
+package com.juanmuscaria.dmm;
 
 public class ReportedException extends Exception {
     private final String header;

@@ -1,8 +1,9 @@
-package com.juanmuscaria.duskers.ui;
+package com.juanmuscaria.dmm.ui;
 
-import com.juanmuscaria.duskers.DialogHelper;
-import com.juanmuscaria.duskers.DuskersHelper;
-import com.juanmuscaria.duskers.ReportedException;
+import com.juanmuscaria.dmm.DialogHelper;
+import com.juanmuscaria.dmm.DuskersHelper;
+import com.juanmuscaria.dmm.ReportedException;
+import io.micronaut.core.annotation.ReflectiveAccess;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,26 +11,29 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@ReflectiveAccess
 public class InstallerController {
-
     @FXML
+    @ReflectiveAccess
     private ComboBox<String> folderList;
-
     @FXML
-    private AnchorPane root;
-
+    @ReflectiveAccess
+    private BorderPane root;
     @FXML
+    @ReflectiveAccess
     private Button install;
-
     @FXML
+    @ReflectiveAccess
     private Label installInfo;
 
     @FXML
+    @ReflectiveAccess
     void initialize() {
         for (Path path : DuskersHelper.getPossibleDuskersFolders()) {
             folderList.getItems().add(path.toString());
@@ -39,6 +43,7 @@ public class InstallerController {
     }
 
     @FXML
+    @ReflectiveAccess
     void install(ActionEvent event) {
         event.consume();
         try {
@@ -62,6 +67,7 @@ public class InstallerController {
     }
 
     @FXML
+    @ReflectiveAccess
     void selectFolder(ActionEvent event) {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Select Duskers Folder");
@@ -72,10 +78,10 @@ public class InstallerController {
         event.consume();
     }
 
-    void onFolderChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+    private void onFolderChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
         var path = Path.of(newValue);
         if (Files.isDirectory(path)) {
-            if (Files.exists(DuskersHelper.getNewDuskersBinary(path))) {
+            if (DuskersHelper.isInstalled(path)) {
                 install.setText("Update/Reinstall");
                 install.setDisable(false);
                 installInfo.setText("Updates a currently installed version of the mod loader");
