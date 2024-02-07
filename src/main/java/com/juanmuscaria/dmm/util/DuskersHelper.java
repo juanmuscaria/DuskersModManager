@@ -24,24 +24,24 @@ public class DuskersHelper {
     private static final String WINDOWS_STEAM_PATH = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Duskers";
 
     public static List<Path> getPossibleDuskersFolders() {
-        var paths = new ArrayList<Path>(5);
+        var paths = new ArrayList<Path>(2);
 
         if (SystemUtils.IS_OS_WINDOWS) {
-            paths.add(Path.of(WINDOWS_STEAM_PATH));
+            addPathIfExists(Path.of(WINDOWS_STEAM_PATH), paths);
 
         } else if (SystemUtils.IS_OS_LINUX) {
             var userPath = SystemUtils.getUserHome().toPath();
 
-            var steamInstall = userPath.resolve(LINUX_STEAM_PATH);
-            if (Files.isDirectory(steamInstall)) {
-                paths.add(steamInstall);
-            }
-            var flatpak = userPath.resolve(LINUX_FLATPAK);
-            if (Files.isDirectory(flatpak)) {
-                paths.add(flatpak);
-            }
+            addPathIfExists(userPath.resolve(LINUX_STEAM_PATH), paths);
+            addPathIfExists(userPath.resolve(LINUX_FLATPAK), paths);
         }
         return paths;
+    }
+
+    private static void addPathIfExists(Path path, ArrayList<Path> paths) {
+        if (Files.isDirectory(path)) {
+            paths.add(path);
+        }
     }
 
     public static Path getDuskersBinary(Path basePath) {
