@@ -24,8 +24,7 @@ jobs:
 
       - name: Download Liberica NIK
         run: |
-          download_url="https://download.bell-sw.com/vm/23.1.2/bellsoft-liberica-vm-full-openjdk21.0.2+14-23.1.2+1-windows-amd64.zip"
-          wget -O $RUNNER_TEMP/java_package.zip $download_url
+          C:\msys64\usr\bin\wget.exe -O ${{ runner.temp }}\java_package.zip "https://download.bell-sw.com/vm/23.1.2/bellsoft-liberica-vm-full-openjdk21.0.2+14-23.1.2+1-windows-amd64.zip"
 
       - name: Set up Liberica NIK
         uses: actions/setup-java@v3
