@@ -19,7 +19,7 @@ public class ModManagerApplication extends Application {
         setUserAgentStylesheet(new CupertinoLight().getUserAgentStylesheet());
         try {
             Scene scene;
-            if (DuskersHelper.isInstalled(Path.of("."))) {
+            if (DuskersHelper.isInstalled(Path.of(".")) || Boolean.getBoolean("dmm.forceLauncher")) {
                 scene = new Scene(FXMLLoader.load(
                         Objects.requireNonNull(getClass().getResource("/ui/duskers_launcher.fxml"),
                                 "Unable to load JavaFX resources")));

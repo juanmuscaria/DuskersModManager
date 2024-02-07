@@ -108,6 +108,7 @@ processResources {
 
 run {
     //jvmArgs += "-agentlib:native-image-agent=config-merge-dir=src/main/resources/META-INF/native-image"
+    jvmArgs += '-Ddmm.forceLauncher=true'
     jvmArgs += '-Djansi.mode=force'
     jvmArgs += '-Dpicocli.ansi=true'
 }

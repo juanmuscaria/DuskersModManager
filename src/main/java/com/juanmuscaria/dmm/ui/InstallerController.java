@@ -10,7 +10,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 
@@ -82,9 +81,9 @@ public class InstallerController {
         var path = Path.of(newValue);
         if (Files.isDirectory(path)) {
             if (DuskersHelper.isInstalled(path)) {
-                install.setText("Update/Reinstall");
+                install.setText("Update or Reinstall");
                 install.setDisable(false);
-                installInfo.setText("Updates a currently installed version of the mod loader");
+                installInfo.setText("Replaces a currently installed version of the mod manager");
                 return;
             } else if (Files.exists(DuskersHelper.getDuskersBinary(path))) {
                 install.setText("Install");
@@ -99,6 +98,6 @@ public class InstallerController {
     private void disableInstallButton() {
         install.setText("Invalid Path");
         install.setDisable(true);
-        installInfo.setText("Duskers was not detected.");
+        installInfo.setText("Duskers was not detected");
     }
 }
