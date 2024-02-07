@@ -1,8 +1,9 @@
-package com.juanmuscaria.dmm;
+package com.juanmuscaria.dmm.util;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
+import lombok.Getter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,7 +15,7 @@ public class DialogHelper {
         e.printStackTrace(new PrintWriter(sw));
         var alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText("An unrecoverable error occurred!");
-        alert.setContentText("The application will now exit.");
+        alert.setContentText("The application will now exit");
         var text = new TextArea(sw.toString());
         text.setMaxHeight(Long.MAX_VALUE);
         text.setMaxWidth(Long.MAX_VALUE);
@@ -77,4 +78,23 @@ public class DialogHelper {
         alert.showAndWait();
     }
 
+    @Getter
+    public static class ReportedException extends Exception {
+        private final String header;
+
+        public ReportedException(String header, String message) {
+            super(message);
+            this.header = header;
+        }
+
+        public ReportedException(String header, String message, Throwable cause) {
+            super(message, cause);
+            this.header = header;
+        }
+
+        public ReportedException(String header, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+            super(message, cause, enableSuppression, writableStackTrace);
+            this.header = header;
+        }
+    }
 }

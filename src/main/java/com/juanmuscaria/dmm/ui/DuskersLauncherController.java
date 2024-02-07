@@ -1,29 +1,27 @@
 package com.juanmuscaria.dmm.ui;
 
-import com.juanmuscaria.dmm.Constants;
-import com.juanmuscaria.dmm.DuskersHelper;
-import com.juanmuscaria.dmm.ReportedException;
+import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.AppenderBase;
+import ch.qos.logback.core.Context;
+import com.juanmuscaria.dmm.util.DialogHelper;
+import com.juanmuscaria.dmm.util.DuskersHelper;
 import io.micronaut.core.annotation.ReflectiveAccess;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.Objects;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.logging.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 @ReflectiveAccess
 public class DuskersLauncherController {
-    private static final Logger log = Logger.getLogger(Constants.LOGGER_NAME);
-    private static final int MAX_LOG_ENTRIES = 1_000_000;
-
-    private final BlockingDeque<String> logMessages = new LinkedBlockingDeque<>(MAX_LOG_ENTRIES);
+    private static final Logger logger = LoggerFactory.getLogger(DuskersLauncherController.class);
     private Process duskers;
 
     @FXML
@@ -41,23 +39,11 @@ public class DuskersLauncherController {
     @FXML
     @ReflectiveAccess
     void initialize() {
-        Timeline logTransfer = new Timeline(
-                new KeyFrame(
-                        Duration.seconds(0.5),
-                        event -> {
-                            while (logMessages.size() > 0) {
-                                logs.appendText(logMessages.poll());
-                            }
-                        }
-                )
-        );
-        logTransfer.setCycleCount(Timeline.INDEFINITE);
-        logTransfer.play();
-        Logger.getLogger("").addHandler(new QueueHandler(logMessages, new SimpleFormatter()));
-
-//        log.addHandler(new StreamHandler(new PrintStream(new TextAreaOutputStream(logMessages), true), new SimpleFormatter()));
-//
-//        log.setLevel(Level.ALL);
+        // Dirty hack to get log messages
+        var rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        var appender = new LogbackListAppender(rootLogger.getLoggerContext());
+        appender.start();
+        rootLogger.addAppender(appender);
     }
 
     @FXML
@@ -65,7 +51,7 @@ public class DuskersLauncherController {
     void launch(ActionEvent event) {
         event.consume();
         logs.clear();
-        log.info("Launching Duskers with mods");
+        logger.info("Launching Duskers with mods");
         launch(true);
     }
 
@@ -74,7 +60,7 @@ public class DuskersLauncherController {
     void launchUnmodded(ActionEvent event) {
         event.consume();
         logs.clear();
-        log.info("Launching Duskers without mods");
+        logger.info("Launching Duskers without mods");
         launch(false);
     }
 
@@ -82,8 +68,8 @@ public class DuskersLauncherController {
         try {
             var pb = DuskersHelper.buildDuskersLaunchProcess(modded);
             duskers = pb.start();
-            var logPipe = new LogPump(duskers, logMessages);
-            logPipe.start();
+            var logPump = new LogPump(duskers);
+            logPump.start();
             launch.setDisable(true);
             launchUnmodded.setDisable(true);
             new Thread("TerminationHandler") {
@@ -99,83 +85,52 @@ public class DuskersLauncherController {
                 }
             }.start();
         } catch (IOException e) {
-            log.severe("Unable to launch duskers");
-            var sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            log.severe(sw.toString());
-        } catch (ReportedException e) {
-            log.severe("Unable to launch duskers: " + e.getHeader());
-            var sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            log.severe(sw.toString());
+            logger.error("Unable to launch duskers", e);
+        } catch (DialogHelper.ReportedException e) {
+            logger.error("Unable to launch duskers: {}", e.getHeader(), e);
         }
     }
-}
 
-class LogPump extends Thread {
+    private class LogbackListAppender extends AppenderBase<ILoggingEvent> {
+        private final PatternLayout layout = new PatternLayout();
 
-    private final Process process;
-    private final BlockingDeque<String> messages;
+        LogbackListAppender(Context ctx) {
+            layout.setContext(ctx);
+            layout.setPattern("%-5level %logger{36} - %msg%n");
+            layout.start();
+            this.setContext(ctx);
+        }
 
-    LogPump(Process process, BlockingDeque<String> messages) {
-        super("LogPump");
-        this.process = process;
-        this.messages = messages;
+        @Override
+        protected void append(ILoggingEvent event) {
+            var logMessage = layout.doLayout(event);
+            Platform.runLater(() -> logs.appendText(logMessage));
+        }
     }
 
-    @Override
-    public void run() {
-        try {
-            var in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String message;
+    private static class LogPump extends Thread {
+        private static final Logger logger = LoggerFactory.getLogger("Duskers");
+        private final Process process;
 
-            while (process.isAlive()) {
-                if ((message = in.readLine()) != null) {
-                    messages.offer(message + "\n");
+        LogPump(Process process) {
+            super("LogPump");
+            this.process = process;
+        }
+
+        @Override
+        public void run() {
+            try {
+                var in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String message;
+
+                while (process.isAlive()) {
+                    if ((message = in.readLine()) != null) {
+                        logger.info(message);
+                    }
                 }
+            } catch (IOException e) {
+                logger.error("Unable to listen for more logs", e);
             }
-
-        } catch (IOException e) {
-            messages.offer("[Duskers Mod Loader] Unable to listen for more logs\n");
-            var sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            messages.offer(sw.toString());
         }
-    }
-}
-
-class QueueHandler extends Handler {
-
-    private final BlockingDeque<String> messages;
-
-    QueueHandler(BlockingDeque<String> messages, Formatter formatter) {
-        this.messages = messages;
-        this.setLevel(Level.INFO);
-        this.setFormatter(Objects.requireNonNull(formatter));
-    }
-
-    @Override
-    public void publish(LogRecord record) {
-        if (!isLoggable(record)) {
-            return;
-        }
-        String msg;
-        try {
-            msg = getFormatter().format(record);
-        } catch (Exception ex) {
-            reportError(null, ex, ErrorManager.FORMAT_FAILURE);
-            return;
-        }
-        messages.offer(msg);
-    }
-
-    @Override
-    public void flush() {
-
-    }
-
-    @Override
-    public void close() throws SecurityException {
-
     }
 }

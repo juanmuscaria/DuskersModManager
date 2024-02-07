@@ -1,8 +1,7 @@
 package com.juanmuscaria.dmm.ui;
 
-import com.juanmuscaria.dmm.DialogHelper;
-import com.juanmuscaria.dmm.DuskersHelper;
-import com.juanmuscaria.dmm.ReportedException;
+import com.juanmuscaria.dmm.util.DialogHelper;
+import com.juanmuscaria.dmm.util.DuskersHelper;
 import io.micronaut.core.annotation.ReflectiveAccess;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -54,10 +53,10 @@ public class InstallerController {
                 DialogHelper.infoAndWait("Mod loader installed",
                         "You may close the installer and launch the game normally");
             } else {
-                throw new ReportedException("Insufficient Permission", "The installer could not write to the game folder " +
+                throw new DialogHelper.ReportedException("Insufficient Permission", "The installer could not write to the game folder " +
                         "due to missing permission, try running the installer as administrator instead.");
             }
-        } catch (ReportedException e) {
+        } catch (DialogHelper.ReportedException e) {
             DialogHelper.reportAndWait(e);
         } catch (Exception e) {
             DialogHelper.reportAndWait(e, "Error during installation",

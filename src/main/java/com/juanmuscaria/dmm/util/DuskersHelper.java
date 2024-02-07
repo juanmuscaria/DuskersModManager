@@ -1,7 +1,10 @@
-package com.juanmuscaria.dmm;
+package com.juanmuscaria.dmm.util;
 
+import com.juanmuscaria.dmm.ModManagerApplication;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,12 +14,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class DuskersHelper {
-    private static final Logger log = Logger.getLogger(Constants.LOGGER_NAME);
+    private static final Logger logger = LoggerFactory.getLogger(DuskersHelper.class);
     private static final String LINUX_STEAM_PATH = ".local/share/Steam/steamapps/common/Duskers";
     private static final String LINUX_FLATPAK = ".var/app/com.valvesoftware.Steam/" + LINUX_STEAM_PATH;
     private static final String WINDOWS_STEAM_PATH = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Duskers";
@@ -97,7 +99,7 @@ public class DuskersHelper {
         FileUtils.deleteDirectory(bepInEx.resolve("core").toFile());
     }
 
-    public static void installModManager(Path basePath) throws IOException, ReportedException {
+    public static void installModManager(Path basePath) throws IOException, DialogHelper.ReportedException {
         var duskersBinary = DuskersHelper.getDuskersBinary(basePath);
         var newDuskersBinary = DuskersHelper.getNewDuskersBinary(basePath);
         var dataFolder = DuskersHelper.getDataFolderName(basePath);
@@ -110,11 +112,11 @@ public class DuskersHelper {
         unpackLoader(basePath);
     }
 
-    private static void unpackLoader(Path basePath) throws IOException, ReportedException {
+    private static void unpackLoader(Path basePath) throws IOException, DialogHelper.ReportedException {
         try (var loader = DuskersHelper.class.getResourceAsStream((SystemUtils.IS_OS_WINDOWS ? "/win.zip" : "/unix.zip"))) {
             if (loader == null) {
-                throw new ReportedException("Essential Files Missing!", "If you see this message it means something went " +
-                        "wrong when building the installer and it's missing important files required to install the modloader.");
+                throw new DialogHelper.ReportedException("Essential Files Missing!", "If you see this message it means something went " +
+                        "wrong when building the installer and it's missing important files required to install the ModManager.");
             }
             unzip(loader, basePath);
         }
@@ -146,12 +148,12 @@ public class DuskersHelper {
     }
 
 
-    public static ProcessBuilder buildDuskersLaunchProcess(boolean modded) throws ReportedException {
+    public static ProcessBuilder buildDuskersLaunchProcess(boolean modded) throws DialogHelper.ReportedException {
         var pb = new ProcessBuilder();
         var cmd = new ArrayList<String>();
         var env = pb.environment();
         var local = Path.of(".").toAbsolutePath();
-        log.info("Duskers path:" + local);
+        logger.info("Duskers path:" + local);
 
         if (SystemUtils.IS_OS_WINDOWS) {
             cmd.addAll(Arrays.asList("cmd", "/c",
@@ -171,7 +173,7 @@ public class DuskersHelper {
         return pb;
     }
 
-    private static void writeWinConfig(boolean modded) throws ReportedException {
+    private static void writeWinConfig(boolean modded) throws DialogHelper.ReportedException {
         try {
             Files.writeString(Path.of(".", "doorstop_config.ini"), String.format("""
                     [UnityDoorstop]
@@ -182,7 +184,7 @@ public class DuskersHelper {
                     dllSearchPathOverride=
                     """, modded), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new ReportedException("Unable to write to doorstop_config.ini", "An IO error occurred writing to" +
+            throw new DialogHelper.ReportedException("Unable to write to doorstop_config.ini", "An IO error occurred writing to" +
                     " doorstop_config.ini, ensure your user has permission to write to the game directory.", e);
         }
     }

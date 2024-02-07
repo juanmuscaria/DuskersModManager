@@ -15,4 +15,7 @@ module DuskersModManager.main {
     requires org.graalvm.nativeimage;
     requires org.slf4j;
     requires org.fusesource.jansi;
+    requires static lombok;
+    requires ch.qos.logback.classic;
+    requires ch.qos.logback.core;
 }

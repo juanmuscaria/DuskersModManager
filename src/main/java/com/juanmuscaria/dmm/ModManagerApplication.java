@@ -1,5 +1,7 @@
 package com.juanmuscaria.dmm;
 
+import com.juanmuscaria.dmm.util.DialogHelper;
+import com.juanmuscaria.dmm.util.DuskersHelper;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

@@ -28,7 +28,7 @@ dependencies {
     implementation("org.fusesource.jansi:jansi:2.4.1")
     implementation("io.github.mkpaz:atlantafx-base:2.0.1")
     compileOnly("org.projectlombok:lombok")
-    runtimeOnly("ch.qos.logback:logback-classic")
+    implementation("ch.qos.logback:logback-classic")
 }
 
 graalvmNative {
