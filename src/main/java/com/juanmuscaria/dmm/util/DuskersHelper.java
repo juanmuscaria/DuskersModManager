@@ -152,7 +152,7 @@ public class DuskersHelper {
         var pb = new ProcessBuilder();
         var cmd = new ArrayList<String>();
         var env = pb.environment();
-        var local = Path.of(".").toAbsolutePath();
+        var local = ModManagerApplication.getSelfPath().toAbsolutePath().getParent();
         logger.info("Duskers path:" + local);
 
         if (SystemUtils.IS_OS_WINDOWS) {
