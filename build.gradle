@@ -144,7 +144,7 @@ tasks.register("buildModloader", Exec) {
 }
 
 processResources {
-    dependsOn("repackBepInEx")
+    dependsOn("repackBepInEx", "buildModloader")
     from("$buildDir/repack")
 }
 
