@@ -16,3 +16,4 @@ bin
 obj
 packages
 /.idea/
+/dotnet/sdk/

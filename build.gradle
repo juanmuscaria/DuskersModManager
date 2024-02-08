@@ -10,6 +10,7 @@ plugins {
 
 version = "0.1"
 group = "com.juanmuscaria"
+var os = DefaultNativePlatform.currentOperatingSystem
 
 repositories {
     mavenCentral()
@@ -52,7 +53,6 @@ micronaut {
 
 tasks.register("compileModloader", Exec) {
     setWorkingDir("$rootProject.projectDir/modloader")
-    OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
     if (os.isLinux()) {
         setCommandLine('/usr/bin/msbuild')
     } else {
@@ -99,6 +99,48 @@ tasks.register("repackBepInExUnix", Zip) {
 
 tasks.register("repackBepInEx") {
     dependsOn("repackBepInExUnix", "repackBepInExWin")
+}
+
+tasks.register("installDotnetSdk", Exec) {
+    group('dotnet')
+
+    workingDir = "$projectDir/dotnet"
+    if (os.isWindows()) {
+        commandLine 'cmd', '/c', 'Powershell -File dotnet-install.ps1'
+    } else {
+        commandLine './dotnet-install.sh'
+    }
+
+    // dotnet-install.sh accepts the same arguments as the powershell version, but not the other way around...
+    args += ['-InstallDir', 'sdk', '-NoPath', '-Channel', '6.0']
+}
+
+tasks.register("updateNuGetDependencies", Exec) {
+    group('dotnet')
+    dependsOn('installDotnetSdk')
+
+    workingDir = "$projectDir/modloader"
+    if (os.isWindows()) {
+        commandLine 'cmd', '/c', file("$projectDir/dotnet/sdk/dotnet.exe").getAbsolutePath()
+    } else {
+        commandLine file("$projectDir/dotnet/sdk/dotnet").getAbsolutePath()
+    }
+
+    args += ['restore']
+}
+
+tasks.register("buildModloader", Exec) {
+    group('dotnet')
+    dependsOn('updateNuGetDependencies')
+
+    workingDir = "$projectDir/modloader"
+    if (os.isWindows()) {
+        commandLine 'cmd', '/c', file("$projectDir/dotnet/sdk/dotnet.exe").getAbsolutePath()
+    } else {
+        commandLine file("$projectDir/dotnet/sdk/dotnet").getAbsolutePath()
+    }
+
+    args += ['msbuild']
 }
 
 processResources {
