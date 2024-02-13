@@ -80,7 +80,7 @@ tasks.register('downloadBepInExUnix', Download) {
 }
 
 tasks.register('downloadBepInExWin', Download) {
-    src "https://github.com/BepInEx/BepInEx/releases/download/v${project.property('BepInExVersion')}/BepInEx_x64_${project.property('BepInExVersion')}.0.zip"
+    src "https://github.com/BepInEx/BepInEx/releases/download/v${project.property('BepInExVersion')}/BepInEx_x86_${project.property('BepInExVersion')}.0.zip"
     dest "$buildDir/BepInExWin.zip"
     overwrite false
 }
