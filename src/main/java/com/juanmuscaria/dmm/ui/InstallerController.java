@@ -3,6 +3,7 @@ package com.juanmuscaria.dmm.ui;
 import com.juanmuscaria.dmm.util.DialogHelper;
 import com.juanmuscaria.dmm.util.DuskersHelper;
 import io.micronaut.core.annotation.ReflectiveAccess;
+import jakarta.inject.Singleton;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -15,6 +16,7 @@ import javafx.stage.DirectoryChooser;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Singleton
 @ReflectiveAccess
 public class InstallerController {
     @FXML
@@ -51,16 +53,16 @@ public class InstallerController {
                 DuskersHelper.installModManager(gamePath);
                 installInfo.setText("Mod loader installed");
                 DialogHelper.infoAndWait("Mod loader installed",
-                        "You may close the installer and launch the game normally");
+                    "You may close the installer and launch the game normally");
             } else {
                 throw new DialogHelper.ReportedException("Insufficient Permission", "The installer could not write to the game folder " +
-                        "due to missing permission, try running the installer as administrator instead.");
+                    "due to missing permission, try running the installer as administrator instead.");
             }
         } catch (DialogHelper.ReportedException e) {
             DialogHelper.reportAndWait(e);
         } catch (Exception e) {
             DialogHelper.reportAndWait(e, "Error during installation",
-                    "An unknown error occurred during the installation");
+                "An unknown error occurred during the installation");
         }
     }
 

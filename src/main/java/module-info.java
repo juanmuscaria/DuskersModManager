@@ -6,6 +6,7 @@ module DuskersModManager.main {
     requires io.micronaut.inject;
     requires info.picocli;
     requires io.micronaut.context;
+    requires jakarta.inject;
     requires io.micronaut.picocli.micronaut_picocli;
     requires java.logging;
     requires org.apache.commons.lang3;
@@ -18,4 +19,10 @@ module DuskersModManager.main {
     requires static lombok;
     requires ch.qos.logback.classic;
     requires ch.qos.logback.core;
+    requires com.fasterxml.jackson.annotation;
+    requires com.fasterxml.jackson.core;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.dataformat.toml;
+    requires org.apache.tika.core;
+    requires org.apache.commons.collections4;
 }

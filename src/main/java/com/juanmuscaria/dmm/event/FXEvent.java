@@ -1,0 +1,28 @@
+package com.juanmuscaria.dmm.event;
+
+import io.micronaut.context.event.ApplicationEvent;
+import io.micronaut.core.annotation.NonNull;
+import javafx.stage.Stage;
+import lombok.Getter;
+
+public class FXEvent extends ApplicationEvent {
+    public FXEvent(Object source) {
+        super(source);
+    }
+
+    public static class FXInit extends FXEvent {
+        public FXInit(Object source) {
+            super(source);
+        }
+    }
+
+    @Getter
+    public static class FXStart extends @NonNull FXEvent {
+        private final Stage primaryStage;
+
+        public FXStart(Object source, Stage primaryStage) {
+            super(source);
+            this.primaryStage = primaryStage;
+        }
+    }
+}

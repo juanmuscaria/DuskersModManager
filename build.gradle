@@ -8,7 +8,8 @@ plugins {
     id 'io.micronaut.application' version '4.2.1'
 }
 
-version = "0.1"
+ext.gitInfoCached = null
+version = "0.0.1--${gitInfo('branch')}-${gitInfo('hash')}"
 group = "com.juanmuscaria"
 var os = DefaultNativePlatform.currentOperatingSystem
 
@@ -30,6 +31,11 @@ dependencies {
     implementation("io.github.mkpaz:atlantafx-base:2.0.1")
     compileOnly("org.projectlombok:lombok")
     implementation("ch.qos.logback:logback-classic")
+    implementation('org.apache.tika:tika-core:2.9.1')
+    implementation('org.apache.commons:commons-collections4:4.4')
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.16.1')
+    implementation('com.fasterxml.jackson.core:jackson-annotations:2.16.1')
+    implementation('com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.16.1')
 }
 
 graalvmNative {
@@ -146,11 +152,43 @@ tasks.register("buildModloader", Exec) {
 processResources {
     dependsOn("repackBepInEx", "buildModloader")
     from("$buildDir/repack")
+    from("$projectDir/modloader/bin/Debug/net35/modloader.dll")
+
+    inputs.property "version", project.version
+    from(sourceSets.main.resources.srcDirs) {
+        include 'application.properties'
+
+        expand 'version':project.version
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 run {
-    //jvmArgs += "-agentlib:native-image-agent=config-merge-dir=src/main/resources/META-INF/native-image"
+    //jvmArgs += "-agentlib:native-image-agent=config-merge-dir=../src/main/resources/META-INF/native-image"
     jvmArgs += '-Ddmm.forceLauncher=true'
     jvmArgs += '-Djansi.mode=force'
     jvmArgs += '-Dpicocli.ansi=true'
+    workingDir = buildDir
+}
+
+def gitInfo(String key) {
+    if (!gitInfoCached) {
+        if (file('.git').exists()) {
+            gitInfoCached = [
+                    hash    : ['git', 'log', "--format=%h", '-n', '1'].execute().text.trim(),
+                    fullHash: ['git', 'log', "--format=%H", '-n', '1'].execute().text.trim(),
+                    branch  : ['git', 'symbolic-ref', '--short', 'HEAD'].execute().text.trim(),
+                    message : ['git', 'log', "--format=%B", '-n', '1'].execute().text.trim()
+            ]
+        } else {
+            gitInfoCached = [
+                    hash    : 'NOT_A_GIT',
+                    fullHash: 'NOT_A_GIT',
+                    branch  : 'NOT_A_GIT',
+                    message : 'NOT_A_GIT'
+            ]
+        }
+    }
+    return key ? gitInfoCached[key] : gitInfoCached
 }

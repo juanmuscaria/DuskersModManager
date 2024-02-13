@@ -1,8 +1,12 @@
 {
   "resources":{
-    "includes":[
-      {
-        "pattern":"\\Qatlantafx/base/theme/cupertino-light.css\\E"
-      }
-    ]}
+    "includes":[{
+      "pattern":"\\Qatlantafx/base/theme/cupertino-light.bss\\E"
+    }, {
+      "pattern": "\\Qatlantafx/base/theme/cupertino-light.css\\E"
+    }, {
+      "pattern":"\\Qorg/apache/tika/mime/custom-mimetypes.xml\\E"
+    }, {
+      "pattern":"\\Qorg/apache/tika/mime/tika-mimetypes.xml\\E"
+    }]}
 }

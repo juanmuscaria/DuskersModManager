@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.ReflectionConfig;
 import static io.micronaut.core.annotation.TypeHint.AccessType.*;
 
 @ReflectionConfig(type = org.fusesource.jansi.AnsiConsole.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
+@ReflectionConfig(type = java.util.concurrent.ConcurrentSkipListSet.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 @ReflectionConfig(type = javafx.geometry.Insets.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 @ReflectionConfig(type = javafx.scene.control.Button.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 @ReflectionConfig(type = javafx.scene.control.ComboBox.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
@@ -52,6 +53,12 @@ import static io.micronaut.core.annotation.TypeHint.AccessType.*;
 @ReflectionConfig(type = javafx.scene.control.TextArea.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 @ReflectionConfig(type = javafx.scene.control.TextInputControl.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 @ReflectionConfig(type = javafx.scene.layout.AnchorPane.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
+@ReflectionConfig(type = javafx.scene.control.ListView.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
+@ReflectionConfig(type = javafx.scene.control.ScrollPane.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
+@ReflectionConfig(type = javafx.scene.control.ScrollPane.ScrollBarPolicy.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
+@ReflectionConfig(type = javafx.scene.layout.ColumnConstraints.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
+@ReflectionConfig(type = javafx.scene.layout.GridPane.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
+@ReflectionConfig(type = javafx.scene.layout.RowConstraints.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 //@ReflectionConfig(type = .class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
-public class JavaFXReflectionConfig {
+public class ReflectiveConfig {
 }
