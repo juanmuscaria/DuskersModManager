@@ -6,6 +6,9 @@ import io.micronaut.context.annotation.Prototype;
 import jakarta.inject.Inject;
 import javafx.fxml.FXMLLoader;
 
+/**
+ * Gives JavaFX dependency Injection support
+ */
 @Factory
 class FXMLLoaderFactory {
     @Inject

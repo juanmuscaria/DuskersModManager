@@ -41,13 +41,13 @@ public class DuskersLauncherController {
     public Label versionLabel;
     public Button launch;
     public Button launchUnmodded;
-    private Process duskers;
     @Inject
     public ModManager modManager;
     @Inject
     public Application application;
     @Value("${dmm.version}")
     public String version;
+    private Process duskers;
 
     @FXML
     @ReflectiveAccess

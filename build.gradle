@@ -9,7 +9,7 @@ plugins {
 }
 
 ext.gitInfoCached = null
-version = "0.0.1--${gitInfo('branch')}-${gitInfo('hash')}"
+version = "0.0.1-${gitInfo('branch')}-${gitInfo('hash')}"
 group = "com.juanmuscaria"
 var os = DefaultNativePlatform.currentOperatingSystem
 
@@ -55,22 +55,6 @@ micronaut {
         incremental(true)
         annotations("com.juanmuscaria.*")
     }
-}
-
-tasks.register("compileModloader", Exec) {
-    setWorkingDir("$rootProject.projectDir/modloader")
-    if (os.isLinux()) {
-        setCommandLine('/usr/bin/msbuild')
-    } else {
-        throw new UnsupportedOperationException("Unsuported OS")
-    }
-}
-
-tasks.register("copyModloader", Copy) {
-    dependsOn('compileModloader')
-    from("$rootProject.projectDir/modloader/Doorstop/bin/Debug/net35/Doorstop.dll")
-    into("$buildDir/modloader")
-    rename('Doorstop.dll','modloader.dll')
 }
 
 tasks.register('downloadBepInExUnix', Download) {

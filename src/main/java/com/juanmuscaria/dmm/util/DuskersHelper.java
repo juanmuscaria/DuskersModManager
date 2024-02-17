@@ -20,11 +20,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class DuskersHelper {
+    public static final String ASSEMBLY_PATCHER_PATH = "DuskersModManagerPatcher";
     private static final Logger logger = LoggerFactory.getLogger(DuskersHelper.class);
     private static final String LINUX_STEAM_PATH = ".local/share/Steam/steamapps/common/Duskers";
     private static final String LINUX_FLATPAK = ".var/app/com.valvesoftware.Steam/" + LINUX_STEAM_PATH;
     private static final String WINDOWS_STEAM_PATH = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Duskers";
-    public static final String ASSEMBLY_PATCHER_PATH = "DuskersModManagerPatcher";
 
     public static List<Path> getPossibleDuskersFolders() {
         var paths = new ArrayList<Path>(2);

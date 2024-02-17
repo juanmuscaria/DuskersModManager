@@ -1,9 +1,13 @@
-package com.juanmuscaria.dmm.config;
+package com.juanmuscaria.dmm;
 
 import io.micronaut.core.annotation.ReflectionConfig;
 
 import static io.micronaut.core.annotation.TypeHint.AccessType.*;
 
+/**
+ * This class configures all reflection magic done by Mod Manager,
+ * barely more convenient than manual graal vm configuration, just barely...
+ */
 @ReflectionConfig(type = org.fusesource.jansi.AnsiConsole.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 @ReflectionConfig(type = java.util.concurrent.ConcurrentSkipListSet.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})
 @ReflectionConfig(type = javafx.geometry.Insets.class, accessType = {ALL_PUBLIC, ALL_DECLARED_CONSTRUCTORS, ALL_DECLARED_FIELDS, ALL_DECLARED_METHODS})

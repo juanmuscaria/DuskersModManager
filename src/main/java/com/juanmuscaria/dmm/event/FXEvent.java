@@ -1,7 +1,6 @@
 package com.juanmuscaria.dmm.event;
 
 import io.micronaut.context.event.ApplicationEvent;
-import io.micronaut.core.annotation.NonNull;
 import javafx.stage.Stage;
 import lombok.Getter;
 
@@ -17,7 +16,7 @@ public class FXEvent extends ApplicationEvent {
     }
 
     @Getter
-    public static class FXStart extends @NonNull FXEvent {
+    public static class FXStart extends FXEvent {
         private final Stage primaryStage;
 
         public FXStart(Object source, Stage primaryStage) {

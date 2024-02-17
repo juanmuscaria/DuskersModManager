@@ -21,7 +21,7 @@ public class UILoader {
     private static final Logger logger = LoggerFactory.getLogger(UILoader.class);
     @Inject
     FXMLLoader loader;
-    
+
     @EventListener
     void onAppStart(FXEvent.FXStart event) {
         Application.setUserAgentStylesheet(new CupertinoLight().getUserAgentStylesheet());

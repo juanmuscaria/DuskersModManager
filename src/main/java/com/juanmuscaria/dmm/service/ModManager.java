@@ -1,6 +1,5 @@
 package com.juanmuscaria.dmm.service;
 
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.toml.TomlMapper;
@@ -8,7 +7,6 @@ import com.juanmuscaria.dmm.data.ModEntry;
 import com.juanmuscaria.dmm.data.ModList;
 import com.juanmuscaria.dmm.data.ModMetadata;
 import com.juanmuscaria.dmm.util.DuskersHelper;
-import io.micronaut.core.annotation.ReflectiveAccess;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Singleton;
 import javafx.application.Platform;
@@ -37,8 +35,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import java.util.zip.ZipFile;
 
+/**
+ * Brain behind the mod manager UI
+ */
 @Singleton
-@ReflectiveAccess
 public class ModManager {
     public static final String MOD_LIST_FILE = "mods.toml";
     private static final Logger logger = LoggerFactory.getLogger(ModManager.class);
@@ -62,7 +62,11 @@ public class ModManager {
         patchersDir = duskersDir.resolve("BepInEx/patchers");
         pluginsDir = duskersDir.resolve("BepInEx/plugins");
         patchedAssembliesDir = patchersDir.resolve(DuskersHelper.ASSEMBLY_PATCHER_PATH).resolve("replace");
-        logger.info("Mod Manager files will reside in {}", managerDir);
+
+        //TODO: TERRIBLE bandaid, modList reference is never expected to be changed,
+        // but we also need to load it from disk,
+        // however reading from disk is not safe here as it may be possible we are the installer,
+        // while also being able to catch errors and exit if we are the mod manager
         modList.addListener((observable, oldValue, newValue) ->
             newValue.getMods().addListener((SetChangeListener<ModEntry>) change -> {
                 logger.debug("Change to mod list detected! Added {}, Removed {}.", change.getElementAdded(), change.getElementRemoved());
@@ -71,6 +75,9 @@ public class ModManager {
     }
 
     public void loadOrCreateFiles() throws IOException {
+        logger.info("Mod Manager data will be at {}", managerDir);
+
+        //TODO: Make helper method to remove *all* that duplicated code
         if (!Files.isDirectory(managerDir)) {
             Files.createDirectories(managerDir);
         }
@@ -144,6 +151,7 @@ public class ModManager {
                 return MAPPER.readValue(Files.newInputStream(metadata), ModMetadata.class);
             }
         } else if (Files.isRegularFile(modPath)) {
+            //TODO: Using Tika here is absolutely over kill here, we should check header instead
             var mimeType = TIKA.detect(modPath);
             if (mimeType.equals("application/zip")) {
                 try (var zipFile = new ZipFile(modPath.toFile())) {
@@ -213,6 +221,7 @@ public class ModManager {
         return property;
     }
 
+    // TODO: This is fair from ideal and does a lot of useless work, needs to be remade for full release
     public void updateInstalledMods() throws IOException {
         var encoder = Base64.getUrlEncoder();
         var decoder = Base64.getUrlDecoder();
@@ -225,7 +234,7 @@ public class ModManager {
         // Compute enabled mods
         for (ModEntry mod : this.getModlist().getMods()) {
             if (mod.isEnabled()) {
-                var identifier = encoder.encodeToString(("dmmManagedMod:"+mod.getMetadata().id()).getBytes(StandardCharsets.UTF_8));
+                var identifier = encoder.encodeToString(("dmmManagedMod:" + mod.getMetadata().id()).getBytes(StandardCharsets.UTF_8));
                 if (enabledMods.containsValue(identifier)) {
                     logger.warn("{} is incompatible with {} and will be ignored!", mod, enabledMods.getKey(identifier));
                 } else {
@@ -234,17 +243,20 @@ public class ModManager {
             }
         }
 
-        // First, we need to remove any non-enabled mods
-        try (var modPaths = Stream.concat(Files.walk(patchersDir, 0), Files.walk(pluginsDir, 0))) {
+        // First, clear all previously enabled mods,
+        // ideally we should take a hash from mod packages and only delete if the hash does not match,
+        // but for now leave it as is
+        try (var modPaths = Stream.concat(Files.walk(patchersDir, 1), Files.walk(pluginsDir, 1))) {
             modPaths.parallel().filter(path -> {
                 try {
                     var identifier = new String(decoder.decode(path.getFileName().toString()), StandardCharsets.UTF_8);
-                    return identifier.startsWith("dmmManagedMod") && !enabledMods.containsValue(identifier);
+                    return identifier.startsWith("dmmManagedMod");
                 } catch (IllegalArgumentException ignored) {
                     return false;
                 }
             }).forEach(path -> {
                 try {
+                    logger.debug("Deleting mod folder {}", path);
                     FileUtils.deleteDirectory(path.toFile());
                 } catch (IOException e) {
                     logger.error("Unable to delete mod {}", path, e);
@@ -282,7 +294,7 @@ public class ModManager {
                                         Files.createDirectories(targetPath.getParent());
                                         Files.copy(zipFile.getInputStream(entry), targetPath, StandardCopyOption.REPLACE_EXISTING);
                                     } else if (entry.getName().startsWith("plugin")) {
-                                        var targetPath =  pluginsDir.resolve(modEntry.getValue()).resolve(entry.getName().substring(7));
+                                        var targetPath = pluginsDir.resolve(modEntry.getValue()).resolve(entry.getName().substring(7));
                                         Files.createDirectories(targetPath.getParent());
                                         Files.copy(zipFile.getInputStream(entry), targetPath, StandardCopyOption.REPLACE_EXISTING);
                                     } else if (entry.getName().startsWith("patcher")) {

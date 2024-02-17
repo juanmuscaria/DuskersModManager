@@ -2,7 +2,6 @@ package com.juanmuscaria.dmm;
 
 import com.juanmuscaria.dmm.event.FXEvent;
 import io.micronaut.context.ApplicationContext;
-import io.micronaut.context.event.ApplicationEventPublisher;
 import jakarta.inject.Singleton;
 import javafx.application.Application;
 import javafx.stage.Stage;
