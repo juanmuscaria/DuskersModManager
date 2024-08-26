@@ -1,0 +1,31 @@
+plugins {
+    id 'groovy-gradle-plugin'
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    annotationProcessor("org.projectlombok:lombok:1.18.28")
+    implementation("de.undercouch:gradle-download-task:5.6.0")
+    implementation("org.tukaani:xz:1.9")
+    implementation("commons-io:commons-io:2.16.1")
+}
+
+
+gradlePlugin {
+    plugins {
+        toolingPlugin {
+            id = "com.juanmuscaria.tooling.dmm"
+            implementationClass = "com.juanmuscaria.tooling.dmm.DmmPlugin"
+        }
+    }
+}

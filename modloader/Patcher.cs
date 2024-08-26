@@ -41,7 +41,7 @@ namespace modloader
             }
             else
             {
-                Console.WriteLine("Replacment path is gone??? No game Assembles will be patched!");
+                Console.WriteLine("Replacement path is gone??? No game Assembles will be patched!");
             }
         }
     }
