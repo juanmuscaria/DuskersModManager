@@ -73,7 +73,7 @@ class DmmPlugin implements Plugin<Project> {
                                 var compressTask = tasks.register("compress${nativeBuild.name.capitalize()}", UpxTask) {
                                     it.dependsOn(nativeBuild)
                                     it.inputExecutable.set(nativeBuild.outputDirectory.flatMap { it.file(nativeBuild.executableName) })
-                                    it.upxExecutableFile.set(upxExecutable.get())
+                                    it.upxExecutableFile.set(upxExecutable)
                                 }
 
                                 compress.configure {
