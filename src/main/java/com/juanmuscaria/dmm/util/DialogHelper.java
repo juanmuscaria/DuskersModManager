@@ -3,7 +3,6 @@ package com.juanmuscaria.dmm.util;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
-import lombok.Getter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -78,23 +77,4 @@ public class DialogHelper {
         alert.showAndWait();
     }
 
-    @Getter
-    public static class ReportedException extends Exception {
-        private final String header;
-
-        public ReportedException(String header, String message) {
-            super(message);
-            this.header = header;
-        }
-
-        public ReportedException(String header, String message, Throwable cause) {
-            super(message, cause);
-            this.header = header;
-        }
-
-        public ReportedException(String header, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-            super(message, cause, enableSuppression, writableStackTrace);
-            this.header = header;
-        }
-    }
 }

@@ -18,6 +18,7 @@ dependencies {
     implementation("de.undercouch:gradle-download-task:5.6.0")
     implementation("org.tukaani:xz:1.9")
     implementation("commons-io:commons-io:2.16.1")
+    implementation("com.kichik.pecoff4j:pecoff4j:0.4.1")
 }
 
 

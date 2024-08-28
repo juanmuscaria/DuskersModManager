@@ -102,7 +102,7 @@ public class DuskersHelper {
         FileUtils.deleteDirectory(bepInEx.resolve("core").toFile());
     }
 
-    public static void installModManager(Path basePath) throws IOException, DialogHelper.ReportedException {
+    public static void installModManager(Path basePath) throws IOException, ReportedException {
         var duskersBinary = DuskersHelper.getDuskersBinary(basePath);
         var newDuskersBinary = DuskersHelper.getNewDuskersBinary(basePath);
         var dataFolder = DuskersHelper.getDataFolderName(basePath);
@@ -115,10 +115,10 @@ public class DuskersHelper {
         unpackLoader(basePath);
     }
 
-    private static void unpackLoader(Path basePath) throws IOException, DialogHelper.ReportedException {
+    private static void unpackLoader(Path basePath) throws IOException, ReportedException {
         try (var loader = DuskersHelper.class.getResourceAsStream((SystemUtils.IS_OS_WINDOWS ? "/win.zip" : "/unix.zip"))) {
             if (loader == null) {
-                throw new DialogHelper.ReportedException("Essential Files Missing!", "If you see this message it means something went " +
+                throw new ReportedException("Essential Files Missing!", "If you see this message it means something went " +
                     "wrong when building the installer and it's missing important files required to install the ModManager.");
             }
             unzip(loader, basePath);
@@ -158,17 +158,17 @@ public class DuskersHelper {
         }
     }
 
-    public static ProcessBuilder buildDuskersLaunchProcess(boolean modded) throws DialogHelper.ReportedException {
+    public static ProcessBuilder buildDuskersLaunchProcess(boolean modded) throws ReportedException {
         var pb = new ProcessBuilder();
         var cmd = new ArrayList<String>();
         var env = pb.environment();
         var local = getSelfPath().toAbsolutePath().getParent();
-        logger.info("Duskers path: " + local);
+        logger.info("Duskers path: {}", local);
 
         if (SystemUtils.IS_OS_WINDOWS) {
             cmd.addAll(Arrays.asList("cmd", "/c",
                 getNewDuskersBinary(local).toAbsolutePath().toString()));
-            writeWinConfig(modded);
+            writeWinConfig(modded, local);
         } else if (SystemUtils.IS_OS_LINUX) {
             cmd.add(getNewDuskersBinary(local).toAbsolutePath().toString());
             env.put("LD_LIBRARY_PATH", local + "/doorstop_libs:" + env.get("LD_LIBRARY_PATH"));
@@ -183,9 +183,9 @@ public class DuskersHelper {
         return pb;
     }
 
-    private static void writeWinConfig(boolean modded) throws DialogHelper.ReportedException {
+    private static void writeWinConfig(boolean modded, Path duskersDir) throws ReportedException {
         try {
-            Files.writeString(Path.of(".", "doorstop_config.ini"), String.format("""
+            Files.writeString(duskersDir.resolve("doorstop_config.ini"), String.format("""
                 [UnityDoorstop]
                 enabled=%b
                 targetAssembly=BepInEx\\core\\BepInEx.Preloader.dll
@@ -194,7 +194,7 @@ public class DuskersHelper {
                 dllSearchPathOverride=
                 """, modded), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new DialogHelper.ReportedException("Unable to write to doorstop_config.ini", "An IO error occurred writing to" +
+            throw new ReportedException("Unable to write to doorstop_config.ini", "An IO error occurred writing to" +
                 " doorstop_config.ini, ensure your user has permission to write to the game directory.", e);
         }
     }

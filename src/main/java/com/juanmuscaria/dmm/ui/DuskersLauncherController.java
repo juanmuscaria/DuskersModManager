@@ -6,8 +6,9 @@ import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
 import com.juanmuscaria.dmm.data.ModEntry;
 import com.juanmuscaria.dmm.service.ModManager;
+import com.juanmuscaria.dmm.service.SimpleLauncher;
 import com.juanmuscaria.dmm.util.DialogHelper;
-import com.juanmuscaria.dmm.util.DuskersHelper;
+import com.juanmuscaria.dmm.util.ReportedException;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.annotation.ReflectiveAccess;
 import jakarta.inject.Inject;
@@ -27,9 +28,6 @@ import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 
 @Singleton
@@ -45,6 +43,8 @@ public class DuskersLauncherController {
     public ModManager modManager;
     @Inject
     public Application application;
+    @Inject
+    public SimpleLauncher launcher;
     @Value("${dmm.version}")
     public String version;
     private Process duskers;
@@ -59,12 +59,6 @@ public class DuskersLauncherController {
         rootLogger.addAppender(appender);
 
         versionLabel.setText(version);
-
-        try {
-            modManager.loadOrCreateFiles();
-        } catch (Throwable e) {
-            DialogHelper.reportAndExit(e);
-        }
 
         modListView.setCellFactory(CheckBoxListCell.forListView(item -> modManager.makeModEnabledProperty(item), new StringConverter<ModEntry>() {
             @Override
@@ -90,14 +84,6 @@ public class DuskersLauncherController {
     @ReflectiveAccess
     void launch(ActionEvent event) {
         event.consume();
-        logger.info("Preparing mods");
-        try {
-            modManager.updateInstalledMods();
-        } catch (Exception e) {
-            DialogHelper.reportAndWait(e, "Mod preparation failed", "Seems like something went wrong when preparing your mods, possibly a bug on the mod manager!");
-            return;
-        }
-        logger.info("Launching Duskers with mods");
         launch(true);
     }
 
@@ -111,10 +97,7 @@ public class DuskersLauncherController {
 
     private void launch(boolean modded) {
         try {
-            var pb = DuskersHelper.buildDuskersLaunchProcess(modded);
-            duskers = pb.start();
-            var logPump = new LogPump(duskers);
-            logPump.start();
+            duskers = launcher.launch(modded);
             launch.setDisable(true);
             launchUnmodded.setDisable(true);
             new Thread("TerminationHandler") {
@@ -129,9 +112,7 @@ public class DuskersLauncherController {
                     }
                 }
             }.start();
-        } catch (IOException e) {
-            logger.error("Unable to launch duskers", e);
-        } catch (DialogHelper.ReportedException e) {
+        } catch (ReportedException e) {
             logger.error("Unable to launch duskers: {}", e.getHeader(), e);
         }
     }
@@ -147,32 +128,6 @@ public class DuskersLauncherController {
     public void openModFolderButtonClicked(ActionEvent event) {
         event.consume();
         application.getHostServices().showDocument(modManager.getModsDir().toUri().toString());
-    }
-
-    private static class LogPump extends Thread {
-        private static final Logger logger = LoggerFactory.getLogger("Duskers");
-        private final Process process;
-
-        LogPump(Process process) {
-            super("LogPump");
-            this.process = process;
-        }
-
-        @Override
-        public void run() {
-            try {
-                var in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String message;
-
-                while (process.isAlive()) {
-                    if ((message = in.readLine()) != null) {
-                        logger.info(message);
-                    }
-                }
-            } catch (IOException e) {
-                logger.error("Unable to listen for more logs", e);
-            }
-        }
     }
 
     private class LogbackListAppender extends AppenderBase<ILoggingEvent> {

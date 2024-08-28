@@ -10,9 +10,6 @@ import javafx.stage.Stage;
 public class ModManagerApplication extends Application {
     static ApplicationContext context;
 
-    public ModManagerApplication() {
-    }
-
     @Override
     public void init() {
         context.registerSingleton(this);

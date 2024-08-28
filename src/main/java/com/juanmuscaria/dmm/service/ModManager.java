@@ -6,14 +6,14 @@ import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import com.juanmuscaria.dmm.data.ModEntry;
 import com.juanmuscaria.dmm.data.ModList;
 import com.juanmuscaria.dmm.data.ModMetadata;
+import com.juanmuscaria.dmm.util.DialogHelper;
 import com.juanmuscaria.dmm.util.DuskersHelper;
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Singleton;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.SetChangeListener;
 import lombok.Getter;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
@@ -30,6 +30,7 @@ import java.nio.file.*;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
@@ -39,6 +40,7 @@ import java.util.zip.ZipFile;
  * Brain behind the mod manager UI
  */
 @Singleton
+@Requires(property = "dmm.installer", value = "false", defaultValue = "true")
 public class ModManager {
     public static final String MOD_LIST_FILE = "mods.toml";
     private static final Logger logger = LoggerFactory.getLogger(ModManager.class);
@@ -52,10 +54,11 @@ public class ModManager {
     private final @Getter Path pluginsDir;
     private final @Getter Path patchedAssembliesDir;
     private final AtomicBoolean requiresSaving = new AtomicBoolean();
-    private final ObjectProperty<ModList> modList = new SimpleObjectProperty<>(new ModList());
+    private final ModList modList;
     private WatchService modChangeService;
 
     public ModManager() {
+        ModList tempModList = new ModList();
         duskersDir = DuskersHelper.getSelfPath().getParent().toAbsolutePath();
         managerDir = duskersDir.resolve("BepInEx/ModManager");
         modsDir = managerDir.resolve("mods");
@@ -63,49 +66,33 @@ public class ModManager {
         pluginsDir = duskersDir.resolve("BepInEx/plugins");
         patchedAssembliesDir = patchersDir.resolve(DuskersHelper.ASSEMBLY_PATCHER_PATH).resolve("replace");
 
-        //TODO: TERRIBLE bandaid, modList reference is never expected to be changed,
-        // but we also need to load it from disk,
-        // however reading from disk is not safe here as it may be possible we are the installer,
-        // while also being able to catch errors and exit if we are the mod manager
-        modList.addListener((observable, oldValue, newValue) ->
-            newValue.getMods().addListener((SetChangeListener<ModEntry>) change -> {
-                logger.debug("Change to mod list detected! Added {}, Removed {}.", change.getElementAdded(), change.getElementRemoved());
-                requiresSaving.set(true);
-            }));
-    }
+        // Create directories and load mod list
+        try {
+            logger.info("Mod Manager data will be at {}", managerDir);
 
-    public void loadOrCreateFiles() throws IOException {
-        logger.info("Mod Manager data will be at {}", managerDir);
+            ensureDirectoryExists(managerDir);
+            ensureDirectoryExists(modsDir);
+            ensureDirectoryExists(patchersDir);
+            ensureDirectoryExists(pluginsDir);
+            ensureDirectoryExists(patchedAssembliesDir);
 
-        //TODO: Make helper method to remove *all* that duplicated code
-        if (!Files.isDirectory(managerDir)) {
-            Files.createDirectories(managerDir);
-        }
-
-        if (!Files.isDirectory(modsDir)) {
-            Files.createDirectories(modsDir);
-        }
-
-        if (!Files.isDirectory(patchersDir)) {
-            Files.createDirectories(patchersDir);
-        }
-
-        if (!Files.isDirectory(pluginsDir)) {
-            Files.createDirectories(pluginsDir);
-        }
-
-        if (!Files.isDirectory(patchedAssembliesDir)) {
-            Files.createDirectories(patchedAssembliesDir);
-        }
-
-        var modListPath = managerDir.resolve(MOD_LIST_FILE);
-        if (Files.exists(modListPath)) {
-            try {
-                modList.set(MAPPER.readValue(Files.newInputStream(modListPath), ModList.class));
-            } catch (Throwable e) {
-                logger.warn("Unable to load mod list. Enabled mod status will be lost", e);
+            var modListPath = managerDir.resolve(MOD_LIST_FILE);
+            if (Files.exists(modListPath)) {
+                try {
+                    tempModList = Objects.requireNonNullElse(MAPPER.readValue(Files.newInputStream(modListPath), ModList.class), tempModList);
+                } catch (Throwable e) {
+                    logger.warn("Unable to load mod list. Enabled mod status will be lost", e);
+                }
             }
+        } catch (Throwable e) {
+            DialogHelper.reportAndExit(e);
         }
+
+        modList = tempModList;
+        modList.getMods().addListener((SetChangeListener<ModEntry>) change -> {
+            logger.debug("Change to mod list detected! Added {}, Removed {}.", change.getElementAdded(), change.getElementRemoved());
+            requiresSaving.set(true);
+        });
 
         updateModList();
         this.requiresSaving.set(true);
@@ -136,11 +123,17 @@ public class ModManager {
             logger.warn("Unable to update the mod list", e);
         }
 
-        modList.get().getMods().retainAll(foundMods);
-        foundMods.removeAll(modList.get().getMods());
+        modList.getMods().retainAll(foundMods);
+        foundMods.removeAll(modList.getMods());
 
         for (ModEntry foundMod : foundMods) {
             this.getModlist().getMods().add(foundMod);
+        }
+    }
+
+    private void ensureDirectoryExists(Path directory) throws IOException {
+        if (!Files.isDirectory(directory)) {
+            Files.createDirectories(directory);
         }
     }
 
@@ -201,7 +194,7 @@ public class ModManager {
         if (this.requiresSaving.getAndSet(false)) {
             try {
                 Files.writeString(managerDir.resolve(MOD_LIST_FILE),
-                    WRITER.writeValueAsString(modList.get()), StandardCharsets.UTF_8);
+                    WRITER.writeValueAsString(modList), StandardCharsets.UTF_8);
             } catch (IOException e) {
                 logger.error("Unable to save mod list to disk!", e);
             }
@@ -209,7 +202,7 @@ public class ModManager {
     }
 
     public ModList getModlist() {
-        return this.modList.get();
+        return this.modList;
     }
 
     public BooleanProperty makeModEnabledProperty(ModEntry entry) {

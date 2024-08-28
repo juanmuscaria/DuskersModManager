@@ -1,3 +1,4 @@
+import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
@@ -40,8 +41,22 @@ dependencies {
 
 graalvmNative {
     toolchainDetection = true
-    binaries.configureEach {
-        resources.autodetect()
+
+    binaries {
+        main {
+            buildArgs.add("-O4")
+        }
+
+        configureEach {
+            resources.autodetect()
+            if (os.isWindows()) {
+                buildArgs.addAll(
+                        "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS",
+                        "-H:NativeLinkerOption=/ENTRY:mainCRTStartup",
+                        "-H:NativeLinkerOption=${projectDir}\\src\\main\\windows\\dmm.rc",
+                )
+            }
+        }
     }
 }
 
@@ -58,36 +73,41 @@ micronaut {
 }
 
 tasks.register('downloadBepInExUnix', Download) {
+    group("BepInEx")
     src "https://github.com/BepInEx/BepInEx/releases/download/v${project.property('BepInExVersion')}/BepInEx_unix_${project.property('BepInExVersion')}.0.zip"
-    dest "$buildDir/BepInExUnix.zip"
+    dest layout.buildDirectory.map { it.file("BepInExUnix.zip")}
     overwrite false
 }
 
 tasks.register('downloadBepInExWin', Download) {
+    group("BepInEx")
     src "https://github.com/BepInEx/BepInEx/releases/download/v${project.property('BepInExVersion')}/BepInEx_x86_${project.property('BepInExVersion')}.0.zip"
-    dest "$buildDir/BepInExWin.zip"
+    dest layout.buildDirectory.map { it.file("BepInExWin.zip")}
     overwrite false
 }
 
 tasks.register("repackBepInExWin", Zip) {
+    group("BepInEx")
     dependsOn("downloadBepInExWin")
-    from(zipTree("$buildDir/BepInExWin.zip")) {
+    from(zipTree("${layout.buildDirectory.get()}/BepInExWin.zip")) {
         exclude("changelog.txt", "doorstop_config.ini")
     }
     from("$projectDir/src/main/repack")
-    archiveFileName = "$buildDir/repack/win.zip"
+    archiveFileName = "${layout.buildDirectory.get()}/repack/win.zip"
 }
 
 tasks.register("repackBepInExUnix", Zip) {
+    group("BepInEx")
     dependsOn("downloadBepInExUnix")
-    from(zipTree("$buildDir/BepInExUnix.zip")) {
+    from(zipTree("${layout.buildDirectory.get()}/BepInExUnix.zip")) {
         exclude("changelog.txt", "run_bepinex.sh")
     }
     from("$projectDir/src/main/repack")
-    archiveFileName = "$buildDir/repack/unix.zip"
+    archiveFileName = "${layout.buildDirectory.get()}/repack/unix.zip"
 }
 
 tasks.register("repackBepInEx") {
+    group("BepInEx")
     dependsOn("repackBepInExUnix", "repackBepInExWin")
 }
 
@@ -135,7 +155,7 @@ tasks.register("buildModloader", Exec) {
 
 processResources {
     dependsOn("repackBepInEx", "buildModloader")
-    from("$buildDir/repack")
+    from("${rootProject.layout.buildDirectory.get()}/repack")
     from("$projectDir/modloader/bin/Debug/net35/modloader.dll")
 
     inputs.property "version", project.version
@@ -150,10 +170,10 @@ processResources {
 
 run {
     //jvmArgs += "-agentlib:native-image-agent=config-merge-dir=../src/main/resources/META-INF/native-image"
-    jvmArgs += '-Ddmm.forceLauncher=true'
+    jvmArgs += '-Ddmm.installer=false'
     jvmArgs += '-Djansi.mode=force'
     jvmArgs += '-Dpicocli.ansi=true'
-    workingDir = buildDir
+    workingDir = rootProject.layout.buildDirectory
 }
 
 def gitInfo(String key) {

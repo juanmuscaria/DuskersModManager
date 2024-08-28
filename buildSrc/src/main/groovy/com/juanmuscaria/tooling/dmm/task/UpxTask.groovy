@@ -134,7 +134,7 @@ class UpxTask extends DefaultTask {
             bruteLevel.orNull?.with { upxArgs << it.command }
             upxArgs.addAll(additionalOptions.get() )
             upxArgs << inputExecutable.get().asFile.absolutePath
-           args(upxArgs)
+            args(upxArgs)
         }
     }
 }
