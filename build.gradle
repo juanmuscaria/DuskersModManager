@@ -53,7 +53,7 @@ graalvmNative {
                 buildArgs.addAll(
                         "-H:NativeLinkerOption=/SUBSYSTEM:WINDOWS",
                         "-H:NativeLinkerOption=/ENTRY:mainCRTStartup",
-                        "-H:NativeLinkerOption='${projectDir}\\src\\main\\windows\\dmm.rc'",
+                        "-H:NativeLinkerOption='${projectDir}\\src\\main\\windows\\dmm.res'",
                 )
             }
         }
